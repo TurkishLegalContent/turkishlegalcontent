@@ -4,10 +4,34 @@ import { useState } from "react";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError(false);
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    try {
+      const response = await fetch("https://formspree.io/f/xlgojbek", {
+        method: "POST",
+        body: data,
+        headers: { Accept: "application/json" },
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        setError(true);
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -50,11 +74,11 @@ export default function Contact() {
                     </svg>
                   </div>
                   <h3 className="font-serif font-bold text-xl mb-2">
-                    Message Received
+                    Message Sent
                   </h3>
                   <p className="text-text-light">
-                    Thank you for reaching out. We will get back to you within
-                    24 hours.
+                    Thank you! Your message has been sent. We&apos;ll get back
+                    to you within 24 hours.
                   </p>
                 </div>
               ) : (
@@ -113,11 +137,20 @@ export default function Contact() {
                       placeholder="Tell us about your project, content needs, and timeline..."
                     />
                   </div>
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+                      Something went wrong. Please try again or email us directly at{" "}
+                      <a href="mailto:info@turkishlegalcontent.com" className="underline">
+                        info@turkishlegalcontent.com
+                      </a>.
+                    </div>
+                  )}
                   <button
                     type="submit"
-                    className="bg-gold text-white font-semibold px-8 py-3.5 rounded hover:bg-gold-dark transition-colors tracking-wide w-full sm:w-auto"
+                    disabled={loading}
+                    className="bg-gold text-white font-semibold px-8 py-3.5 rounded hover:bg-gold-dark transition-colors tracking-wide w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Send Message
+                    {loading ? "Sending..." : "Send Message"}
                   </button>
                 </form>
               )}
